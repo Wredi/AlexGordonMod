@@ -10,8 +10,11 @@
 
 #include <ddraw.h>
 #include <fmt/core.h>
+#include <fstream>
 
 #include "offsets.hpp"
+#include <dump.hpp>
+#include <iostream>
 
 template <typename... Args>
 void debug_log(std::string_view fmt, Args&& ...args)
@@ -52,36 +55,43 @@ t_Blt o_Blt = nullptr;
 
 AppClass* app;
 std::vector<StaticCoin*> stars;
+std::ofstream file;
 HRESULT __stdcall BltHook(void* This, LPRECT lpDestRect, LPDIRECTDRAWSURFACE lpDDSrcSurface, LPRECT lpSrcRect, DWORD dwFlags, LPDDBLTFX lpDDBltFx)
 {
 	if (lpSrcRect->right == 800 && lpSrcRect->bottom == 600) {
-		HDC hdc;
-		if (lpDDSrcSurface->GetDC(&hdc) == DD_OK)
-		{
-			const auto toScreen = [](const Vector2& in) {
-				return Vector2{
-					.x = 800 + (in.x - app->ptrGameObject->ptrEntityListWrapper->realCameraPos.x),
-					.y = 600 + (in.y - app->ptrGameObject->ptrEntityListWrapper->realCameraPos.y)
-				};
-			};
-			Vector2 alexOnScreen = toScreen(app->ptrGameObject->ptrToChad->pos);
-			alexOnScreen.y -= 50.0f;
-
-			COLORREF qLineColor = RGB(255, 0, 0);
-			HPEN hLinePen = CreatePen(PS_SOLID, 1, qLineColor);
-
-			SelectObject(hdc, hLinePen);
-
-			for(auto i : stars)
+		if (app->ptrGameObject) {
+			HDC hdc;
+			if (lpDDSrcSurface->GetDC(&hdc) == DD_OK)
 			{
-				Vector2 starOnScreen = toScreen(i->pos);
-				MoveToEx(hdc, int(alexOnScreen.x), int(alexOnScreen.y), NULL);
-				LineTo(hdc, int(starOnScreen.x), int(starOnScreen.y));
+				const auto toScreen = [](const Vector2& in) {
+					return Vector2{
+						.x = 800 + (in.x - app->ptrGameObject->ptrEntityListWrapper->realCameraPos.x),
+						.y = 600 + (in.y - app->ptrGameObject->ptrEntityListWrapper->realCameraPos.y)
+					};
+				};
+				Vector2 alexOnScreen = toScreen(app->ptrGameObject->ptrToChad->pos);
+				alexOnScreen.y -= 50.0f;
+
+				COLORREF qLineColor = RGB(255, 0, 0);
+				HPEN hLinePen = CreatePen(PS_SOLID, 1, qLineColor);
+
+				SelectObject(hdc, hLinePen);
+
+				for (auto i : stars)
+				{
+					i8 wasCollectedInPast = *(i8*)(uintptr_t(i) + 0x30);
+					i8 wasCollectedInRun = *(i8*)(uintptr_t(i) + 0x6c);
+					if (wasCollectedInPast != 0 && wasCollectedInRun != 0) {
+						Vector2 starOnScreen = toScreen(i->pos);
+						MoveToEx(hdc, int(alexOnScreen.x), int(alexOnScreen.y), NULL);
+						LineTo(hdc, int(starOnScreen.x), int(starOnScreen.y));
+					}
+				}
+
+				DeleteObject(hLinePen);
+
+				lpDDSrcSurface->ReleaseDC(hdc);
 			}
-
-			DeleteObject(hLinePen);
-
-			lpDDSrcSurface->ReleaseDC(hdc);
 		}
 	}
 	return o_Blt(This, lpDestRect, lpDDSrcSurface, lpSrcRect, dwFlags, lpDDBltFx);
@@ -99,6 +109,7 @@ DWORD WINAPI MainThread(LPVOID lpThreadParameter)
 {
 	HMODULE hModule = (HMODULE)lpThreadParameter;
 
+	file.open("log.txt");
 	AllocConsole();
 	FILE* fDummy;
 	freopen_s(&fDummy, "CONOUT$", "w", stdout);
@@ -111,6 +122,8 @@ DWORD WINAPI MainThread(LPVOID lpThreadParameter)
 
 	if (app) {
 		stars = getAllStars(app->ptrGameObject);
+		for (auto i : stars)
+			fmt::print("{:X}\n", (uintptr_t)i);
 		dvc->GetGDISurface(&lpSurf);
 		o_Blt = MakeVmtHook(*(t_Blt**)lpSurf, 5, BltHook);
 	}
@@ -123,6 +136,9 @@ DWORD WINAPI MainThread(LPVOID lpThreadParameter)
         if (GetAsyncKeyState(VK_DELETE) & 0x01) {
             break;
         }
+		if (GetAsyncKeyState(VK_END) & 0x01) {
+			stars = getAllStars(app->ptrGameObject);
+		}
         Sleep(5);
     }
 	Sleep(100);
@@ -131,6 +147,8 @@ DWORD WINAPI MainThread(LPVOID lpThreadParameter)
 		MakeVmtHook(*(t_Blt**)lpSurf, 5, o_Blt);
 	}
 
+	file.flush();
+	file.close();
     debug_log("DEALOCATION RESOURCES SHIT FUCK");
 	if(fDummy) fclose(fDummy);
 	FreeConsole();

@@ -36,7 +36,7 @@ std::vector<StaticCoin*> getAllStars(GeneralAppProperties* ptrGameObject)
 		if (ents && ents->numEntities && ents->allEntities) {
 			for (int i = 0; i < ents->numEntities; ++i) {
 				uintptr_t* obj = ents->allEntities[i];
-				if (obj && *obj == (uintptr_t)0x5FECFC) {
+				if (obj && *obj == STATIC_COIN_VTABLE) {
 					StaticCoin* star = (StaticCoin*)obj;
 					if (star->ptrToEntAttr && star->ptrToEntAttr->groupId == 1103) {
 						if (star->ptrId && *star->ptrId == 18) {
@@ -50,6 +50,19 @@ std::vector<StaticCoin*> getAllStars(GeneralAppProperties* ptrGameObject)
 	return out;
 }
 
+template <typename T>
+std::vector<T> getEntsByVMT(EntListWrapper* entList, uintptr_t vTable) 
+{
+	if (!entList || !entList->allEntities) return {};
+
+	std::vector<T> out;
+	for (int i = 0; i < entList->numEntities; ++i) {
+		uintptr_t* ent = entList->allEntities[i];
+		if (ent && *ent == vTable) out.push_back(std::bit_cast<T>(ent));
+	}
+	return out;
+}
+
 using t_Blt = HRESULT(__stdcall*)(void*, LPRECT, LPDIRECTDRAWSURFACE, LPRECT, DWORD, LPDDBLTFX);
 t_Blt o_Blt = nullptr;
 
@@ -58,6 +71,13 @@ std::vector<StaticCoin*> stars;
 std::ofstream file;
 HRESULT __stdcall BltHook(void* This, LPRECT lpDestRect, LPDIRECTDRAWSURFACE lpDDSrcSurface, LPRECT lpSrcRect, DWORD dwFlags, LPDDBLTFX lpDDBltFx)
 {
+	Alex* alex = app->ptrGameObject->ptrToChad;
+	alex->checkPoint.x = alex->pos.x;
+	alex->checkPoint.y = alex->pos.y;
+	if (GetAsyncKeyState(VK_END) & 1) {
+		auto ents = getEntsByVMT<BasicEntity*>(app->ptrGameObject->ptrEntityListWrapper, ENTRANCE_VTABLE);
+		alex->pos = ents[0]->pos;
+	}
 	if (lpSrcRect->right == 800 && lpSrcRect->bottom == 600) {
 		if (app->ptrGameObject) {
 			HDC hdc;
@@ -79,9 +99,7 @@ HRESULT __stdcall BltHook(void* This, LPRECT lpDestRect, LPDIRECTDRAWSURFACE lpD
 
 				for (auto i : stars)
 				{
-					i8 wasCollectedInPast = *(i8*)(uintptr_t(i) + 0x30);
-					i8 wasCollectedInRun = *(i8*)(uintptr_t(i) + 0x6c);
-					if (wasCollectedInPast != 0 && wasCollectedInRun != 0) {
+					if (i->wasntCollectedInPast && i->wasntCollectedInRun) {
 						Vector2 starOnScreen = toScreen(i->pos);
 						MoveToEx(hdc, int(alexOnScreen.x), int(alexOnScreen.y), NULL);
 						LineTo(hdc, int(starOnScreen.x), int(starOnScreen.y));
@@ -122,26 +140,24 @@ DWORD WINAPI MainThread(LPVOID lpThreadParameter)
 
 	if (app) {
 		stars = getAllStars(app->ptrGameObject);
-		for (auto i : stars)
-			fmt::print("{:X}\n", (uintptr_t)i);
 		dvc->GetGDISurface(&lpSurf);
 		o_Blt = MakeVmtHook(*(t_Blt**)lpSurf, 5, BltHook);
+
+		while (true)
+		{
+			if (GetAsyncKeyState(VK_DELETE) & 0x01) {
+				break;
+			}
+			if (GetAsyncKeyState(VK_END) & 0x01) {
+				stars = getAllStars(app->ptrGameObject);
+			}
+			Sleep(5);
+		}
+		Sleep(100);
 	}
 	else {
 		debug_log("App is pointing to garbage");
 	}
-
-    while (true)
-    {
-        if (GetAsyncKeyState(VK_DELETE) & 0x01) {
-            break;
-        }
-		if (GetAsyncKeyState(VK_END) & 0x01) {
-			stars = getAllStars(app->ptrGameObject);
-		}
-        Sleep(5);
-    }
-	Sleep(100);
 
 	if (lpSurf != nullptr) {
 		MakeVmtHook(*(t_Blt**)lpSurf, 5, o_Blt);

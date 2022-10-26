@@ -31,22 +31,24 @@ void debug_log(const char* str)
 std::vector<StaticCoin*> getAllStars(GeneralAppProperties* ptrGameObject) 
 {
 	std::vector<StaticCoin*> out;
-	if (ptrGameObject) {
-		EntListWrapper* ents = ptrGameObject->ptrEntityListWrapper;
-		if (ents && ents->numEntities && ents->allEntities) {
-			for (int i = 0; i < ents->numEntities; ++i) {
-				uintptr_t* obj = ents->allEntities[i];
-				if (obj && *obj == STATIC_COIN_VTABLE) {
-					StaticCoin* star = (StaticCoin*)obj;
-					if (star->ptrToEntAttr && star->ptrToEntAttr->groupId == 1103) {
-						if (star->ptrId && *star->ptrId == 18) {
-							out.push_back(star);
-						}
-					}
+
+	if (!ptrGameObject) return out;
+
+	EntListWrapper* ents = ptrGameObject->ptrEntityListWrapper;
+	if (!ents || !ents->numEntities || !ents->allEntities) return out;
+
+	for (int i = 0; i < ents->numEntities; ++i) {
+		uintptr_t* obj = ents->allEntities[i];
+		if (obj && *obj == STATIC_COIN_VTABLE) {
+			StaticCoin* star = (StaticCoin*)obj;
+			if (star->ptrToEntAttr && star->ptrToEntAttr->groupId == 1103) {
+				if (star->ptrId && *star->ptrId == 18) {
+					out.push_back(star);
 				}
 			}
 		}
 	}
+	
 	return out;
 }
 
@@ -109,6 +111,11 @@ HRESULT __stdcall BltHook(void* This, LPRECT lpDestRect, LPDIRECTDRAWSURFACE lpD
 				DeleteObject(hLinePen);
 
 				lpDDSrcSurface->ReleaseDC(hdc);
+			}
+			auto lol = getEntsByVMT<uintptr_t>(app->ptrGameObject->ptrEntityListWrapper, 0x5FDDFC);
+			for (auto i : lol) {
+				fmt::print("Jajco {:x}\n", i);
+				*(uintptr_t*)(i + 0x258) = 4;//default
 			}
 		}
 	}

@@ -10,7 +10,6 @@
 
 #include <ddraw.h>
 #include <fmt/core.h>
-#include <fstream>
 
 #include "offsets.hpp"
 #include <dump.hpp>
@@ -70,7 +69,6 @@ t_Blt o_Blt = nullptr;
 
 AppClass* app;
 std::vector<StaticCoin*> stars;
-std::ofstream file;
 HRESULT __stdcall BltHook(void* This, LPRECT lpDestRect, LPDIRECTDRAWSURFACE lpDDSrcSurface, LPRECT lpSrcRect, DWORD dwFlags, LPDDBLTFX lpDDBltFx)
 {
 	Alex* alex = app->ptrGameObject->ptrToChad;
@@ -134,7 +132,6 @@ DWORD WINAPI MainThread(LPVOID lpThreadParameter)
 {
 	HMODULE hModule = (HMODULE)lpThreadParameter;
 
-	file.open("log.txt");
 	AllocConsole();
 	FILE* fDummy;
 	freopen_s(&fDummy, "CONOUT$", "w", stdout);
@@ -170,9 +167,7 @@ DWORD WINAPI MainThread(LPVOID lpThreadParameter)
 		MakeVmtHook(*(t_Blt**)lpSurf, 5, o_Blt);
 	}
 
-	file.flush();
-	file.close();
-    debug_log("DEALOCATION RESOURCES SHIT FUCK");
+    debug_log("DEALOCATION RESOURCES");
 	if(fDummy) fclose(fDummy);
 	FreeConsole();
     FreeLibraryAndExitThread(hModule, 0);

@@ -161,16 +161,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="app.cpp" />
+    <ClCompile Include="core.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="ext\fmt\format.cc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ext\dump.hpp" />
+    <ClInclude Include="app.h" />
+    <ClInclude Include="core.hpp" />
     <ClInclude Include="ext\fmt\core.h" />
     <ClInclude Include="ext\fmt\format-inl.h" />
     <ClInclude Include="ext\fmt\format.h" />
     <ClInclude Include="offsets.hpp" />
     <ClInclude Include="types.hpp" />
+    <ClInclude Include="winapi.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

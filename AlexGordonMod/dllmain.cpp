@@ -31,10 +31,6 @@ BOOL APIENTRY DllMain( HMODULE hModule,
             CloseHandle(handle);
         }
     }
-	else if (ul_reason_for_call == DLL_PROCESS_DETACH) {
-		App::getInstance()->detach();
-		App::deleteInstance();
-	}
     return TRUE;
 }
 

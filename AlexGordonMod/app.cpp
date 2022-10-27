@@ -97,7 +97,7 @@ void App::detach()
 	debug_log("DEALOCATION RESOURCES");
 
 	MakeVmtHook<t_Blt>(*(t_Blt**)this->lpSurf, 5, o_Blt);
-	Sleep(100);
+	Sleep(10);
 
 	Console::deinitialize();
 }

@@ -61,12 +61,11 @@ void App::deleteInstance()
 	}
 }
 
-void App::run(HMODULE hModule)
+void App::run()
 {
 	Console::initialize();
 
 	this->base = (uintptr_t)(GetModuleHandle(NULL));
-	this->hModule = hModule;
 	this->appClass = *(AppClass**)(base + 0x22F224);
 
 	if (this->appClass) {

@@ -7,8 +7,16 @@
 
 DWORD WINAPI MainThread(LPVOID lpThreadParameter)
 {
-	App::getInstance()->run((HMODULE)lpThreadParameter);
-	ExitThread(0);
+	App::getInstance()->run();
+    while (true) {
+        if (GetAsyncKeyState(VK_DELETE) & 0x01) {
+            break;
+        }
+        Sleep(1);
+    }
+    App::getInstance()->detach();
+    App::deleteInstance();
+    FreeLibraryAndExitThread((HMODULE)lpThreadParameter, 0);
     return TRUE;
 }
 

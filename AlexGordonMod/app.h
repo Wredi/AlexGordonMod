@@ -29,7 +29,7 @@ public:
 private:
 	static App* appInstance;
 public:
-	void run(HMODULE hModule);
+	void run();
 	void handleInput();
 	void detach();
 public:
@@ -38,5 +38,4 @@ public:
 	std::vector<StaticCoin*> stars;
 	t_Blt o_Blt;
 	LPDIRECTDRAWSURFACE lpSurf;
-	HMODULE hModule;
 };

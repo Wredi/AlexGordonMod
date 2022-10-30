@@ -71,6 +71,13 @@ void App::attach()
 
 	this->stars = utils::getAllStars(appClass->ptrGameObject);
 
+	this->exec.nop(0x40F1B, 28);
+	this->exec.nop(0x40FA7, 5);
+	this->exec.nop(0x1D33C, 10);
+	this->exec.nop(0x1D2DC, 2);
+	this->exec.nop(0x1D2E7, 6);
+	this->exec.writeByte(0x22F218, 1);
+
 	LPDIRECTDRAWSURFACE lpSurf;
 	this->appClass->ptrToRenderer->lpDirectDraw->GetGDISurface(&lpSurf);
 	this->o_Blt = utils::MakeVmtHook<t_Blt>(*(t_Blt**)lpSurf, 5, BltCallback);

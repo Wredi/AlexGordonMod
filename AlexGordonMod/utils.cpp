@@ -1,11 +1,11 @@
-#include "core.hpp"
+#include "utils.hpp"
 
-void debug_log(const char* str)
+void utils::debug_log(const char* str)
 {
 	OutputDebugStringA(str);
 }
 
-std::vector<StaticCoin*> getAllStars(GeneralAppProperties* ptrGameObject)
+std::vector<StaticCoin*> utils::getAllStars(GeneralAppProperties* ptrGameObject)
 {
 	std::vector<StaticCoin*> out;
 

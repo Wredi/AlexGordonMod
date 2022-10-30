@@ -7,7 +7,7 @@
 
 DWORD WINAPI MainThread(LPVOID lpThreadParameter)
 {
-	App::getInstance()->run();
+	App::getInstance()->attach();
     while (true) {
         if (GetAsyncKeyState(VK_DELETE) & 0x01) {
             break;
@@ -29,8 +29,9 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     {
         if (const auto handle = CreateThread(nullptr, 0, MainThread, hModule, 0, nullptr)) {
             CloseHandle(handle);
+            return TRUE;
         }
     }
-    return TRUE;
+    return FALSE;
 }
 

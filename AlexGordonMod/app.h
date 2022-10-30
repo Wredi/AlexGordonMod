@@ -10,15 +10,16 @@
 
 #include "types.hpp"
 #include "offsets.hpp"
-#include "core.hpp"
+#include "utils.hpp"
+#include "executable.h"
 
 class Console 
 {
 private:
-	static FILE* fDummy;
+	FILE* fDummy;
 public:
-	static void initialize();
-	static void deinitialize();
+	Console();
+	~Console();
 };
 
 class App
@@ -29,13 +30,14 @@ public:
 private:
 	static App* appInstance;
 public:
-	void run();
+	void attach();
 	void handleInput();
 	void detach();
 public:
-	uintptr_t base;
+	Executable exec;
+	Console console;
+	t_Blt o_Blt;
+public:
 	AppClass* appClass;
 	std::vector<StaticCoin*> stars;
-	t_Blt o_Blt;
-	LPDIRECTDRAWSURFACE lpSurf;
 };

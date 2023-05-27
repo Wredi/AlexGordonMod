@@ -18,6 +18,7 @@ typedef float f32;
 typedef double f64;
 
 using t_Blt = HRESULT(__stdcall*)(void*, LPRECT, LPDIRECTDRAWSURFACE, LPRECT, DWORD, LPDDBLTFX);
+using t_Stupid_Malloc = void*(__cdecl*)(int Size);
 
 class AppClass
 {

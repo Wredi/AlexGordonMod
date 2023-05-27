@@ -28,3 +28,36 @@ std::vector<StaticCoin*> utils::getAllStars(GeneralAppProperties* ptrGameObject)
 
 	return out;
 }
+
+bool utils::detour(char* src, char* dst, const uintptr_t len)
+{
+    if (len < 5)
+        return false;
+
+    DWORD old_protection;
+    VirtualProtect(src, len, PAGE_EXECUTE_READWRITE, &old_protection);
+
+    memset(src, 0x90, len);
+
+    uintptr_t rel_addr = dst - src - 5;
+    *src = 0xE9u;
+    *(uintptr_t*)(src + 1) = rel_addr;
+
+    VirtualProtect(src, len, old_protection, &old_protection);
+
+    return true;
+}
+
+char* utils::tramp_hook(char* src, char* dst, const uintptr_t len)
+{
+	char* gateway = (char*)VirtualAlloc(0, len + 5, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	memcpy_s(gateway, len, src, len);
+
+	uintptr_t src_rel_addr = src - gateway - 5;
+	*(gateway + len) = 0xE9u;
+	*(uintptr_t*)((uintptr_t)gateway + len + 1) = src_rel_addr;
+
+	detour(src, dst, len);
+
+	return gateway;
+}

@@ -26,7 +26,7 @@ namespace utils {
 	}
 
 	std::vector<StaticCoin*> getAllStars(GeneralAppProperties* ptrGameObject);
-
+	
 	template <typename T>
 	std::vector<T> getEntsByVMT(EntListWrapper* entList, uintptr_t vTable)
 	{
@@ -39,4 +39,7 @@ namespace utils {
 		}
 		return out;
 	}
+
+	bool detour(char* src, char* dst, const uintptr_t len);
+	char* tramp_hook(char* src, char* dst, const uintptr_t len);
 }

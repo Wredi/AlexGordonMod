@@ -1,5 +1,8 @@
 #include "app.h"
 
+#include "file-reversing.hpp"
+#include <fstream>
+
 HRESULT __stdcall BltCallback(void* This, LPRECT lpDestRect, LPDIRECTDRAWSURFACE lpDDSrcSurface, LPRECT lpSrcRect, DWORD dwFlags, LPDDBLTFX lpDDBltFx)
 {
 	if (lpSrcRect->right == 800 && lpSrcRect->bottom == 600) {
@@ -66,7 +69,7 @@ void App::deleteInstance()
 
 void App::attach()
 {
-	this->appClass = *exec.addrFromOff<AppClass**>(APP_CLASS_OFFSET);
+	/*this->appClass = *exec.addrFromOff<AppClass**>(APP_CLASS_OFFSET);
 	if (!this->appClass) return utils::debug_log("App pointer is invalid");
 
 	this->stars = utils::getAllStars(appClass->ptrGameObject);
@@ -80,7 +83,12 @@ void App::attach()
 
 	LPDIRECTDRAWSURFACE lpSurf;
 	this->appClass->ptrToRenderer->lpDirectDraw->GetGDISurface(&lpSurf);
-	this->o_Blt = utils::MakeVmtHook<t_Blt>(*(t_Blt**)lpSurf, 5, BltCallback);
+	this->o_Blt = utils::MakeVmtHook<t_Blt>(*(t_Blt**)lpSurf, 5, BltCallback);*/
+
+	//this->o_Stupid_Malloc = (t_Stupid_Malloc)utils::tramp_hook((char*)STUPID_MALLOC_ADDR, (char*)StupidMallocCallback, 5);
+
+	uintptr_t addr = 0x0F27F020;
+	setupMemoryHandler((void*)addr, FILE_2_SIZE);
 }
 
 void App::handleInput()
@@ -100,9 +108,23 @@ void App::detach()
 {
 	utils::debug_log("DEALOCATION");
 
-	LPDIRECTDRAWSURFACE lpSurf;
+	std::ofstream file{ "lol.txt" };
+	for (int i = 1; i < addresses.size(); ++i) {
+		file << fmt::format("Addr lol: {}", addresses[i] - addresses[i - 1]) << '\n';
+	}
+	file.flush();
+
+	/*LPDIRECTDRAWSURFACE lpSurf;
 	this->appClass->ptrToRenderer->lpDirectDraw->GetGDISurface(&lpSurf);
-	utils::MakeVmtHook<t_Blt>(*(t_Blt**)lpSurf, 5, o_Blt);
+	utils::MakeVmtHook<t_Blt>(*(t_Blt**)lpSurf, 5, o_Blt);*/
+
+	//DWORD old_protection;
+	//VirtualProtect((void*)STUPID_MALLOC_ADDR, 5, PAGE_EXECUTE_READWRITE, &old_protection);
+	//memcpy_s((void*)STUPID_MALLOC_ADDR, 5, this->o_Stupid_Malloc, 5);
+	//VirtualProtect(this->o_Stupid_Malloc, 5, old_protection, &old_protection);
+
+	RemoveVectoredExceptionHandler(this->handler);
+
 	Sleep(10);
 }
 

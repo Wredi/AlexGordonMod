@@ -59,5 +59,8 @@
     <ClInclude Include="executable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="file-reversing.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

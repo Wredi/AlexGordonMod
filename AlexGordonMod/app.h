@@ -37,6 +37,13 @@ public:
 	Executable exec;
 	Console console;
 	t_Blt o_Blt;
+
+	t_Stupid_Malloc o_Stupid_Malloc;
+public:
+	std::vector<uintptr_t> addresses;
+	uintptr_t objAddr;
+	uintptr_t objSize;
+	PVOID handler;
 public:
 	AppClass* appClass;
 	std::vector<StaticCoin*> stars;
